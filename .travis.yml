@@ -28,6 +28,7 @@ install:
   - pip install mendeleev
   - conda install -c conda-forge mdtraj 
   - pip install Sphinx
+  - pip install pyyaml
 
 # Install the plugin locally
   - pip install -e .

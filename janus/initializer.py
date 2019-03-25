@@ -158,6 +158,10 @@ class Initializer(object):
 
         if fname.endswith(".json"):
             rfunc = json.load
+        elif fname.endswith(".yaml"):
+            rfunc = yaml.load
+        elif fname.endswith(".yml"):
+            rfunc = yaml.load
         else:
             raise TypeError("Did not understand file type {}.".format(fname))
 
