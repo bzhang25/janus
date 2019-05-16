@@ -64,6 +64,7 @@ class AQMMM(ABC, QMMM):
         """
 
         self.update_traj(main_info['positions'], main_info['topology'], wrapper_type)
+        self.buffer_wrapper.update_traj(self.traj)
         self.find_buffer_zone()
         self.find_configurations()
 

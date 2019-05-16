@@ -59,15 +59,15 @@ def test_create_openmm_system():
     assert sys_3.getNumForces() == 2
 
 def test_compute_info():
-    print(wrapper.md_ensemble)
-    print(wrapper.integrator)
+    #print(wrapper.md_ensemble)
+    #print(wrapper.integrator)
     state1 = wrapper.compute_info(wrapper.pdb.topology, wrapper.pdb.positions)
     state2 = wrapper.compute_info(wrapper.pdb.topology, wrapper.pdb.positions, minimize=True)
 
-    print(state1['kinetic'] + state1['potential'])
-    print(state2['kinetic'] + state2['potential'])
+    #print(state1['kinetic'] + state1['potential'])
+    #print(state2['kinetic'] + state2['potential'])
     assert np.allclose(state1['kinetic'] + state1['potential'],-0.010557407627282312)
-    assert np.allclose(state2['kinetic'] + state2['potential'],-0.028921512047848603)
+    assert np.allclose(state2['kinetic'] + state2['potential'],-0.02892,rtol=1e-05,atol=1e-05)
 
 def test_initialize():
     wrapper.initialize('Mechanical')

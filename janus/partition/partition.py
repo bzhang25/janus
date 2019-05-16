@@ -155,6 +155,9 @@ class Partition(ABC):
 
         return temp_traj, qm_center_idx
 
+    def update_traj(self, traj):
+        self.traj = traj
+
     def get_qm_atoms(self):
 
         return self.qm_atoms

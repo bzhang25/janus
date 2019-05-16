@@ -165,7 +165,7 @@ def test_optimize_geometry():
     geom = qm_sys1.optimize_geometry()
 
     assert np.allclose(geom, opt_mol)
-    assert qm_sys1.energy == -74.96598998934344
+    assert np.allclose(qm_sys1.energy,-74.96598998934344)
 
 
 def test_get_energy_and_gradient():

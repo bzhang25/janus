@@ -154,8 +154,8 @@ def test_run_qmmm():
     assert 'qm' in ala_link.systems[0]
     assert len(mech.systems[0]['qmmm_forces']) == 3
     assert len(ala_link.systems[0]['qmmm_forces']) == 33
-    assert mech.systems[0]['qmmm_energy'] == -74.98137698595846
-    assert ala_link.systems[0]['qmmm_energy'] ==  -55.809616706920814
+    assert np.allclose(mech.systems[0]['qmmm_energy'],-74.98137698595846)
+    assert np.allclose(ala_link.systems[0]['qmmm_energy'],-55.809616706920814)
     assert mech.run_ID == 1
     assert ala_link.run_ID == 1
     
