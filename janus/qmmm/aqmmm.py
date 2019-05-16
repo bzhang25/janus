@@ -4,6 +4,7 @@ import mdtraj as md
 import numpy as np
 from janus.partition import DistancePartition, HystereticPartition
 from janus.qmmm import QMMM
+import time
 
 class AQMMM(ABC, QMMM):
     """
@@ -41,7 +42,7 @@ class AQMMM(ABC, QMMM):
         self.class_type = class_type
         self.buffer_groups = {}
         self.get_qm_center_residues()
-        self.compute_zero_energy()
+        self.time_zero_energy = self.compute_zero_energy()
 
         self.buffer_wrapper =  self.get_buffer_wrapper(partition_scheme)
 
@@ -74,9 +75,9 @@ class AQMMM(ABC, QMMM):
             self.qm_atoms = deepcopy(system.qm_atoms)
 
             if self.embedding_method =='Mechanical':
-                self.mechanical(system, main_info)
+                t_all = self.mechanical(system, main_info)
             elif self.embedding_method =='Electrostatic':
-                self.electrostatic(system, main_info)
+                t_all = self.electrostatic(system, main_info)
             else:
                 print('only mechanical and electrostatic embedding schemes implemented at this time')
             counter += 1
@@ -96,6 +97,8 @@ class AQMMM(ABC, QMMM):
         # delete the information of 2 runs before, only save current run and previous run information at a time
         if self.run_ID > 1:
             del self.systems[self.run_ID - 2]
+
+        return t_all
 
         
     def compute_lamda_i(self, r_i):
@@ -141,6 +144,7 @@ class AQMMM(ABC, QMMM):
         """
         Compute the energy of the isolated groups at their minimum geometry
         """
+        t0 = 0
  
         # for explicit solvent systems can just do once, but for bond forming/breaking processes
         # need to update??
@@ -165,11 +169,16 @@ class AQMMM(ABC, QMMM):
         for res in residues:
             traj = self.traj.atom_slice((residues[res]))
 
+            t1 = time.time()
             mm = self.ll_wrapper.get_energy_and_gradient(traj, minimize=True)
             self.mm_zero_energies[res] = mm['energy']
 
             qm = self.hl_wrapper.get_energy_and_gradient(traj, minimize=True)
             self.qm_zero_energies[res] = qm['energy']
+            t2 = time.time()
+            t0 += t2 - t1
+        
+        return t0
 
     def get_qm_center_residues(self):
         residues = []
@@ -183,19 +192,18 @@ class AQMMM(ABC, QMMM):
         """
         Incorporates the zero energy of groups to the total qmmm energy
         """
-
-        print('step', self.run_ID)
+        #print('step', self.run_ID)
         for i, sys in self.systems[self.run_ID].items():
-            print(sys.qm_residues)
-            print(sys.qm_atoms)
-            print(sys.qmmm_energy)
+           # print(sys.qm_residues)
+           # print(sys.qm_atoms)
+           # print(sys.qmmm_energy)
             sys.zero_energy += self.qm_zero_energies['qm_center']
             for res in self.topology.residues:
                 if (res.index in sys.qm_residues and res.index not in self.qm_center_residues):
                     sys.zero_energy += self.qm_zero_energies[res.name]
                 elif (res.index not in sys.qm_residues and res.index not in self.qm_center_residues):
                     sys.zero_energy += self.mm_zero_energies[res.name]
-            print(sys.zero_energy)
+           # print(sys.zero_energy)
 
             # maybe I should save a separate copy of qmmm energy somewhere
             sys.qmmm_energy -= sys.zero_energy

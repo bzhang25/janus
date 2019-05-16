@@ -2,6 +2,7 @@ from copy import deepcopy
 import numpy as np
 import mdtraj as md
 from janus.system import System
+import time
 
 class QMMM(object):
     """
@@ -61,6 +62,7 @@ class QMMM(object):
         self.embedding_method = embedding_method
         self.boundary_treatment = boundary_treatment
         self.link_atom_element = link_atom_element
+        self.time_zero_energy = 0
 
         self.systems = {}
 
@@ -84,9 +86,9 @@ class QMMM(object):
         system = System(qm_indices=self.qm_atoms, qm_residues=None, run_ID=self.run_ID)
 
         if self.embedding_method =='Mechanical':
-            self.mechanical(system, main_info)
+            t_all = self.mechanical(system, main_info)
         elif self.embedding_method =='Electrostatic':
-            self.electrostatic(system, main_info)
+            t_all = self.electrostatic(system, main_info)
         else:
             print('only mechanical and electrostatic embedding schemes implemented at this time')
             
@@ -107,6 +109,8 @@ class QMMM(object):
         # delete the information of 2 runs before, only save current run and previous run information at a time
         if self.run_ID > 1:
             del self.systems[self.run_ID - 2]
+
+        return t_all
 
     def update_traj(self, position, topology, wrapper_type):
         """
@@ -154,23 +158,30 @@ class QMMM(object):
 
         if self.qmmm_scheme == 'subtractive':
             # Get MM energy on whole system
+            t_md1 = time.time()
             system.entire_sys = self.ll_wrapper.get_energy_and_gradient(self.traj)
+            t_md2 = time.time()
             print('entire', system.entire_sys['energy'])
 
             #print(system.entire_sys['energy'])
+
             # Get MM energy on QM region
             print('calling make primary subsys trajectory')
             traj_ps, link_indices = self.make_primary_subsys_trajectory(qm_atoms=system.qm_atoms)
             system.primary_subsys['trajectory'] = traj_ps
             print('getting mm energy and gradient of qm region')
+            t_md3 = time.time()
             system.primary_subsys['ll'] = self.ll_wrapper.get_energy_and_gradient(traj_ps, include_coulomb='no_link', link_atoms=link_indices)
-            print('ll', system.primary_subsys['ll']['energy'])
+            t_md4 = time.time()
+            #print('ll', system.primary_subsys['ll']['energy'])
 
             # Get QM energy
             print('getting qm energy and gradient of qm region')
+            t_qm1 = time.time()
             system.primary_subsys['hl'] = self.hl_wrapper.get_energy_and_gradient(traj_ps)
-            print('hl', system.primary_subsys['hl']['energy'])
-            print('hl', system.primary_subsys['hl']['gradients'])
+            t_qm2 = time.time()
+            #print('hl', system.primary_subsys['hl']['energy'])
+            #print('hl', system.primary_subsys['hl']['gradients'])
 
             # Compute the total QM/MM energy based on
             # subtractive Mechanical embedding
@@ -181,6 +192,8 @@ class QMMM(object):
             self.compute_gradients(system)
         else:
             print('only a subtractive scheme is implemented at this time')
+        t_final = (t_md2 - t_md1) + (t_md4 - t_md3) + (t_qm2 - t_qm1)
+        return t_final
 
     def electrostatic(self, system, main_info):
         """
@@ -202,22 +215,30 @@ class QMMM(object):
         if self.qmmm_scheme == 'subtractive':
 
             # Get MM energy on whole system
+            t_md1 = time.time()
             system.entire_sys = self.ll_wrapper.get_energy_and_gradient(self.traj)
+            t_md2 = time.time()
             print('entire', system.entire_sys['energy'])
 
             # Get MM energy on QM region
             traj_ps, link_indices = self.make_primary_subsys_trajectory(qm_atoms=system.qm_atoms)
             system.primary_subsys['trajectory'] = traj_ps
+            t_md3 = time.time()
             system.primary_subsys['ll'] = self.ll_wrapper.get_energy_and_gradient(traj_ps, include_coulomb=None)
+            t_md4 = time.time()
 
             # Get MM coulomb energy on secondary subsystem
             traj_ss = self.make_second_subsys_trajectory()
             system.second_subsys['trajectory'] = traj_ss
+            t_md5 = time.time()
             system.second_subsys['ll'] = self.ll_wrapper.get_energy_and_gradient(traj_ss, include_coulomb='only')
+            t_md6 = time.time()
 
             # Get QM energy
-            charges = self.get_external_charges(system)
+            charges, t_md7 = self.get_external_charges(system)
+            t_qm1 = time.time()
             system.primary_subsys['hl'] = self.hl_wrapper.get_energy_and_gradient(traj_ps, charges=charges)
+            t_qm2 = time.time()
 
             # Compute the total QM/MM energy based on
             # subtractive Mechanical embedding
@@ -230,6 +251,8 @@ class QMMM(object):
 
         else:
             print('only a subtractive scheme is implemented at this time')
+        t_final = (t_md2 - t_md1) + (t_md4 - t_md3) + (t_md6 - t_md5) + (t_qm2 - t_qm1) + t_md7
+        return t_final
 
     def compute_gradients(self, system):
         """
@@ -255,7 +278,7 @@ class QMMM(object):
             #print('ps_mm', ps_mm_grad)
             #print('qm', qm_grad)
             qmmm_force = {}
-           # print('sys qm_atom', system.qm_atoms)
+            print('!! sys qm_atom', system.qm_atoms)
                 
             # iterate over list of qm atoms
             for i, atom in enumerate(system.qm_atoms):
@@ -265,9 +288,9 @@ class QMMM(object):
                 # multiply by -1 to get from gradients to forces
                 # these are in units of au_bohr, convert to openmm units in openmm wrapper
                 #qmmm_force[atom] = -1 * (entire_grad[atom] - ps_mm_grad[i] + qm_grad[i])
-                print(atom, 'mm ps', -1*ps_mm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
-                print(atom, 'qm ps', -1*qm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
-                print(atom, 'entire', -1*entire_grad[atom]*self.ll_wrapper.au_bohr_to_kjmol_nm)
+                #print(atom, 'mm ps', -1*ps_mm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
+                #print(atom, 'qm ps', -1*qm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
+                #print(atom, 'entire', -1*entire_grad[atom]*self.ll_wrapper.au_bohr_to_kjmol_nm)
                 qmmm_force[atom] = -1 * (- ps_mm_grad[i] + qm_grad[i])
                 
                 # treating gradients for link atoms
@@ -519,7 +542,9 @@ class QMMM(object):
         charges = []
         # in angstroms
         es_pos = 10*system.entire_sys['positions']
+        t_md1 = time.time()
         charge = self.ll_wrapper.get_main_charges()
+        t_md2 = time.time()
 
         if self.embedding_method == 'Mechanical':
             return None
@@ -585,7 +610,7 @@ class QMMM(object):
                         charges.append([chrg, es_pos[i][0], es_pos[i][1], es_pos[i][2]])
 
                 
-        return charges
+        return charges, t_md2 - t_md1
 
     def get_redistributed_positions(self, positions, bonds, mm):
         """

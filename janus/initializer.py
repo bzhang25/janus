@@ -3,6 +3,7 @@ import os
 from janus.qm_wrapper import Psi4Wrapper 
 from janus.mm_wrapper import OpenMMWrapper 
 from janus.qmmm import QMMM, OniomXS, HotSpot, PAP, SAP, DAS
+import time
 
 class Initializer(object):
     """
@@ -126,6 +127,8 @@ class Initializer(object):
 
             md_sim_wrapper = self.md_sim_wrapper(sys_info=self.system_info, sys_info_format=self.system_info_format, **self.ll)
 
+            
+            t1 = time.time()
             if self.md_restart is False:
                 # initialize mm_wrapper with information about initial system
                 md_sim_wrapper.initialize(qmmm_wrapper.embedding_method)
@@ -133,11 +136,13 @@ class Initializer(object):
                 md_sim_wrapper.restart(qmmm_wrapper.embedding_method, 
                                        self.md_restart_checkpoint_filename,
                                        self.md_restart_forces_filename)
+            t2 = time.time()
+            time_all = t2 - t1 + qmmm_wrapper.time_zero_energy
 
-            return md_sim_wrapper, qmmm_wrapper
+            return md_sim_wrapper, qmmm_wrapper, time_all
  
         else:
-            return ll_wrapper, qmmm_wrapper
+            return ll_wrapper, qmmm_wrapper, qmmm_wrapper.time_zero_energy
         
 
     def load_param(self, fname):
