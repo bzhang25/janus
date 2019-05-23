@@ -34,9 +34,9 @@ init3 = initializer.Initializer(param3)
 
 def test_initialize_wrappers():
 
-    mm1, qmmm1 = init1.initialize_wrappers()
-    mm2, qmmm2 = init2.initialize_wrappers()
-    mm3, qmmm3 = init3.initialize_wrappers()
+    mm1, qmmm1, t1 = init1.initialize_wrappers()
+    mm2, qmmm2, t2 = init2.initialize_wrappers()
+    mm3, qmmm3, t3 = init3.initialize_wrappers()
 
     assert qmmm1.class_type == 'Oniom-XS'
     assert qmmm2.class_type == 'Hot-Spot'

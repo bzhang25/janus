@@ -662,7 +662,7 @@ class QMMM(object):
         if form == 'pdb':
             traj = md.load(fil)
 
-        if form == 'Amber':
+        elif form == 'Amber':
 
             for f in fil:
                 if f.endswith('prmtop'):
@@ -679,5 +679,7 @@ class QMMM(object):
                 traj = md.load(pdb_fil)
             else:
                 traj = md.load(crd_fil, top=top_fil)
+        else:
+            raise Exception("Keyword system_info_format = {} not recognized".format(form))
 
         return traj

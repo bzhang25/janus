@@ -77,9 +77,9 @@ def test_get_redistributed_positions():
 def test_get_external_charges():
 
     charges_mech = mech.get_external_charges(sys_mech)
-    charges_ala_link = ala_link.get_external_charges(sys_ala_link)
-    charges_ala_RC = ala_RC.get_external_charges(sys_ala_RC)
-    charges_ala_RCD = ala_RCD.get_external_charges(sys_ala_RCD)
+    charges_ala_link,t2 = ala_link.get_external_charges(sys_ala_link)
+    charges_ala_RC,t3 = ala_RC.get_external_charges(sys_ala_RC)
+    charges_ala_RCD,t4 = ala_RCD.get_external_charges(sys_ala_RCD)
     
     assert charges_mech is None
     assert len(charges_ala_link) == 29

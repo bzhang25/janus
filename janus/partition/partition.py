@@ -45,9 +45,11 @@ class Partition(ABC):
         for i in atoms:
 
             symbol = self.traj.topology.atom(i).element.symbol
+#            print(symbol)
             m = mdlv.element(symbol).atomic_weight
             # this gives positions in nm
             position =  np.array(self.traj.xyz[0][i])
+#            print(position)
 
             M += m
             xyz += m * position
@@ -91,6 +93,8 @@ class Partition(ABC):
 
         if (remove is True and add is False):
             for a in top.residue(res_idx).atoms:
+                #print('atoms in idx {}'.format(res_idx))
+                #print(a)
                 if a.index in atoms:
                     atoms.remove(a.index)
 
@@ -126,7 +130,9 @@ class Partition(ABC):
 
         buf = Buffer(ID=idx)
 
+        print('getting residue info for residue {}'.format(idx))
         for a in self.topology.residue(idx).atoms:
+            print(a)
             buf.atoms.append(a.index)
 
         buf.COM_coord, buf.atom_weights, buf.weight_ratio = self.compute_COM(buf.atoms)

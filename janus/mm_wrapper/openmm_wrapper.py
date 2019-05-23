@@ -429,8 +429,16 @@ class OpenMMWrapper(MMWrapper):
         # check to see if there are unmatched residues in pdb, create residue templates if there are
         if (self.system_info_format == 'pdb' or self.use_pdb is True):
             unmatched = self.forcefield.getUnmatchedResidues(topology)
-            if unmatched:
-                self.create_new_residue_template(topology)
+            #if unmatched:
+            #    self.create_new_residue_template(topology)
+            print("number of residues for problem topology with unmatched residue")
+            print(len(unmatched))
+            if len(unmatched) > 0:
+                print(unmatched[0])
+                for atom in unmatched[0].atoms():
+                    print(atom)
+                for bonds in unmatched[0].bonds():
+                    print(bonds)
 
             openmm_system = self.forcefield.createSystem(topology,
                                             nonbondedMethod=self.nonbondedMethod,

@@ -94,6 +94,7 @@ class Psi4Wrapper(QMWrapper):
             G = psi4.gradient(self.method)
             self.gradient = np.asarray(G)
         except:
+            print('in exception block')
             self.set_up_psi4(be_quiet=False)
             self.energy, self.wavefunction = psi4.energy(self.method,
                                                         return_wfn=True)
@@ -139,6 +140,8 @@ class Psi4Wrapper(QMWrapper):
         psi4_geom += 'no_reorient \n'
         psi4_geom += 'no_com \n '
         #print(psi4_geom)
+        print('psi4 geometry')
+        print(psi4_geom)
 
         # make sure this is in angstroms
         mol = psi4.geometry(psi4_geom)
