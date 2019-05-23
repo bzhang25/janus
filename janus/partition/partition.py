@@ -130,9 +130,7 @@ class Partition(ABC):
 
         buf = Buffer(ID=idx)
 
-        print('getting residue info for residue {}'.format(idx))
         for a in self.topology.residue(idx).atoms:
-            print(a)
             buf.atoms.append(a.index)
 
         buf.COM_coord, buf.atom_weights, buf.weight_ratio = self.compute_COM(buf.atoms)

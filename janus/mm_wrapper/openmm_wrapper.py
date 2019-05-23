@@ -137,6 +137,7 @@ class OpenMMWrapper(MMWrapper):
 
         # should I minimize energy here? If so, need to return new positions
 
+        print('initializing mm wrapper')
         if (self.other_md_ensembles is not None and self.other_ensemble_steps is not None):
             print('other ensembles')
             print(self.other_md_ensembles)
@@ -166,7 +167,6 @@ class OpenMMWrapper(MMWrapper):
         else:
             pos = self.positions
 
-        print('starting main simulation')
         if embedding_method == 'Mechanical':
             self.main_simulation, self.main_info =\
             self.compute_info(self.topology, pos, initialize=True, return_simulation=True, minimize=False)

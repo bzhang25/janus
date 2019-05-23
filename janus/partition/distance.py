@@ -56,7 +56,6 @@ class DistancePartition(Partition):
                     self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
                 elif (buf.r_i >= self.Rmin and buf.r_i < self.Rmax):
-                    print('buffer idx {} in between Rmin and Rmax'.format(idx))
                     self.buffer_groups[idx] = buf
                     self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
@@ -65,27 +64,17 @@ class DistancePartition(Partition):
 
         qm_atoms = deepcopy(self.qm_atoms)
         # tracking qm_residues and cleaning up qm
-        print('qm_residues')
-        print(self.qm_residues)
         for i in qm_atoms:
-            #print('processing atom i')
-            #print(i)
             idx = top.atom(i).residue.index
-            #print('idx for atom i')
-            #print(idx)
             if idx not in self.qm_residues:
-                print('idx {} not in qm_residues'.format(idx))
                 if idx in qm_center_residues:
                     self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, add=True)
                     self.qm_residues.append(idx)
                 else:
                     res = self.get_residue_info(idx)
-                    print(res.r_i)
                     if res.r_i >= self.Rmax:
-                        print('res r_i >= self.Rmax')
                         self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
                     elif res.r_i < self.Rmin:
-                        print('res r_i < self.Rmax')
                         self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, add=True)
                         self.qm_residues.append(idx)
                     elif (res.r_i >= self.Rmin and res.r_i < self.Rmax):
