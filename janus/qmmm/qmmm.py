@@ -81,6 +81,7 @@ class QMMM(object):
             Defines the program used to obtain main_info
         """
 
+        print(main_info['positions'])
         self.update_traj(main_info['positions'], main_info['topology'], wrapper_type)
 
         system = System(qm_indices=self.qm_atoms, qm_residues=None, run_ID=self.run_ID)
@@ -658,27 +659,21 @@ class QMMM(object):
         
         """
             
-        print(form)
         if form == 'pdb':
             traj = md.load(fil)
 
         elif form == 'Amber':
+            use_pdb = False
 
             for f in fil:
-                if f.endswith('prmtop'):
+                if (f.endswith('prmtop') or f.endswith('pdb')):
                     top_fil = f
-                    use_pdb = False
-                if f.endswith('pdb'):
-                    pdb_fil = f
-                    use_pdb = True
-                if f.endswith('inpcrd'):
+                elif f.endswith('inpcrd'):
                     crd_fil = f
-            print('loading') 
-            print(pdb_fil)
-            if use_pdb is True:
-                traj = md.load(pdb_fil)
-            else:
-                traj = md.load(crd_fil, top=top_fil)
+            #if use_pdb is True:
+            #    traj = md.load(pdb_fil)
+            #else:
+            traj = md.load(crd_fil, top=top_fil)
         else:
             raise Exception("Keyword system_info_format = {} not recognized".format(form))
 
