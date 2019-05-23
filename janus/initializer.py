@@ -108,17 +108,17 @@ class Initializer(object):
         
         if (self.run_aqmmm is True and self.aqmmm_scheme is None):
             raise Exception("AQMMM specified but no scheme was given")
-        if self.aqmmm_scheme is None:
+        if (self.aqmmm_scheme is None or self.run_aqmmm is False):
             qmmm_wrapper = QMMM(hl_wrapper, ll_wrapper, self.system_info, sys_info_format=self.system_info_format, **self.qmmm)
-        elif self.aqmmm_scheme == 'ONIOM-XS':
+        elif (self.aqmmm_scheme == 'ONIOM-XS' and self.run_aqmmm is True):
             qmmm_wrapper = OniomXS(hl_wrapper, ll_wrapper, self.system_info, self.system_info_format, **self.aqmmm)
-        elif self.aqmmm_scheme == 'Hot-Spot':
+        elif (self.aqmmm_scheme == 'Hot-Spot' and self.run_aqmmm is True):
             qmmm_wrapper = HotSpot(hl_wrapper, ll_wrapper, self.system_info, self.system_info_format, **self.aqmmm)
-        elif self.aqmmm_scheme == 'PAP':
+        elif (self.aqmmm_scheme == 'PAP' and self.run_aqmmm is True):
             qmmm_wrapper = PAP(hl_wrapper=hl_wrapper, ll_wrapper=ll_wrapper, sys_info=self.system_info, sys_info_format=self.system_info_format, **self.aqmmm)
-        elif self.aqmmm_scheme == 'SAP':
+        elif (self.aqmmm_scheme == 'SAP' and self.run_aqmmm is True):
             qmmm_wrapper = SAP(hl_wrapper=hl_wrapper, ll_wrapper=ll_wrapper, sys_info=self.system_info, sys_info_format=self.system_info_format, **self.aqmmm)
-        elif self.aqmmm_scheme == 'DAS':
+        elif (self.aqmmm_scheme == 'DAS' and self.run_aqmmm is True):
             qmmm_wrapper = DAS(hl_wrapper=hl_wrapper, ll_wrapper=ll_wrapper, sys_info=self.system_info, sys_info_format=self.system_info_format, **self.aqmmm)
         else:
             raise ValueError("{} not recognized as a currently implemented method".format(self.aqmmm_param['aqmmm_scheme']))
