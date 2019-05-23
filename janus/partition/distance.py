@@ -97,21 +97,12 @@ class DistancePartition(Partition):
         temp_traj, qm_center_idx = self.compute_qm_center_info(qm_center)
 
         rmin_atoms = md.compute_neighbors(temp_traj, self.Rmin/10, qm_center_idx)
-        print('rmin atoms')
-        print(rmin_atoms)
         rmax_atoms = md.compute_neighbors(temp_traj, self.Rmax/10, qm_center_idx)
-        print('rmax atoms')
-        print(rmax_atoms)
         self.buffer_atoms = np.setdiff1d(rmax_atoms, rmin_atoms)
-        print('buffer atoms identified by find_buffer_atom function:')
-        print(self.buffer_atoms)
         self.qm_atoms = rmin_atoms[0].tolist()
 
         if self.COM_as_qm_center is False:
             self.qm_atoms.append(qm_center[0])
-
-        print('qm_atoms identified by the find_buffer_atom function: ' )
-        print(self.qm_atoms)
 
 
     def get_Rmin(self):

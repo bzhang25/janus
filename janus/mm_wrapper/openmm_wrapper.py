@@ -263,8 +263,13 @@ class OpenMMWrapper(MMWrapper):
         #for f in range(len(current['forces'])):
         #    print(f, current['forces'][f])
 
+        print('reading qmmm forces in openmm')
         for f, coord in forces.items():
+            print('idx, force')
+            print(f,coord)
             coord *= MMWrapper.au_bohr_to_kjmol_nm             # convert this back to openmm units
+            print('idx, converted to kjmol_nm force')
+            print(f,coord)
             #print('fed in forces')
             #print(f, coord)
             #print('forces from before')
