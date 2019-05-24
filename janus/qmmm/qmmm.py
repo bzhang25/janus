@@ -81,6 +81,7 @@ class QMMM(object):
             Defines the program used to obtain main_info
         """
 
+        t0 = time.time()
         self.update_traj(main_info['positions'], main_info['topology'], wrapper_type)
 
         system = System(qm_indices=self.qm_atoms, qm_residues=None, run_ID=self.run_ID)
@@ -100,7 +101,9 @@ class QMMM(object):
         self.systems[self.run_ID]['kinetic_energy'] = system.entire_sys['kinetic']
 
         #if self.run_ID % 10 == 0:
-        print('!', self.run_ID, self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])
+        #print('!', self.run_ID, self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])
+        print('! run {} total energy: {}'.format(self.run_ID+1, (self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])))
+        print('! run {} total potential energy: {}'.format(self.run_ID+1, self.systems[self.run_ID]['qmmm_energy']))
             # add kinetic in total qmmm_energy
 
         # updates current step count
@@ -109,6 +112,9 @@ class QMMM(object):
         # delete the information of 2 runs before, only save current run and previous run information at a time
         if self.run_ID > 1:
             del self.systems[self.run_ID - 2]
+
+        t_end = time.time()
+        print('qmmm overhead took {}s'.format(t_end - t0-t_all))
 
         return t_all
 
@@ -288,10 +294,10 @@ class QMMM(object):
                 # multiply by -1 to get from gradients to forces
                 # these are in units of au_bohr, convert to openmm units in openmm wrapper
                 #qmmm_force[atom] = -1 * (entire_grad[atom] - ps_mm_grad[i] + qm_grad[i])
-                print('forces in kjmol/nm in mechanical embedding')
-                print(atom, 'mm ps', -1*ps_mm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
-                print(atom, 'qm ps', -1*qm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
-                print(atom, 'entire', -1*entire_grad[atom]*self.ll_wrapper.au_bohr_to_kjmol_nm)
+                #print('forces in kjmol/nm in mechanical embedding')
+                #print(atom, 'mm ps', -1*ps_mm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
+                #print(atom, 'qm ps', -1*qm_grad[i]*self.ll_wrapper.au_bohr_to_kjmol_nm)
+                #print(atom, 'entire', -1*entire_grad[atom]*self.ll_wrapper.au_bohr_to_kjmol_nm)
                 qmmm_force[atom] = -1 * (- ps_mm_grad[i] + qm_grad[i])
                 
                 # treating gradients for link atoms
@@ -325,9 +331,9 @@ class QMMM(object):
                 for i, atom in enumerate(self.mm_atoms):
                     qmmm_force[atom] = -1 * system.second_subsys['ll']['gradients'][i]
 
-            print('qmmm_forces after qmmm embedding')
-            for idx,f in qmmm_force.items():
-                print(idx,f)
+            #print('qmmm_forces after qmmm embedding')
+            #for idx,f in qmmm_force.items():
+            #    print(idx,f)
             system.qmmm_forces = qmmm_force
         
     def find_boundary_bonds(self, qm_atoms=None):

@@ -59,9 +59,6 @@ class DistancePartition(Partition):
                     self.buffer_groups[idx] = buf
                     self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
-        print('qm atoms after some processing')
-        print(self.qm_atoms)
-
         qm_atoms = deepcopy(self.qm_atoms)
         # tracking qm_residues and cleaning up qm
         for i in qm_atoms:
@@ -80,9 +77,6 @@ class DistancePartition(Partition):
                     elif (res.r_i >= self.Rmin and res.r_i < self.Rmax):
                         self.buffer_groups[idx] = res
                         self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
-
-        print('qm atoms after some more processing')
-        print(self.qm_atoms)
 
     def find_buffer_atoms(self, qm_center):
         """

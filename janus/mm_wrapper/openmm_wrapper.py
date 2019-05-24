@@ -188,7 +188,6 @@ class OpenMMWrapper(MMWrapper):
         elif embedding_method == 'Electrostatic':
             OM_system = self.create_openmm_system(self.topology, include_coulomb=None, initialize=True)
 
-        print(self.integrator)
         # Create an OpenMM simulation from the openmm system, topology, and positions.
         self.main_simulation = self.create_openmm_simulation(OM_system, self.topology, self.positions, self.integrator)
 
@@ -232,7 +231,11 @@ class OpenMMWrapper(MMWrapper):
 
         """
 
+        #print('forces before updating')
+        #print(self.get_main_info()['forces'][:3])
         self.update_forces(force, self.qmmm_force, self.main_simulation)
+        #print('forces after updating')
+        #print(self.get_main_info()['forces'][:3])
         self.main_simulation.step(1)                                             # take a step
         self.main_info = self.get_main_info()                                    # get the energy and gradients after step
         self.positions = self.main_info['positions']                             # get positions after step
@@ -265,11 +268,7 @@ class OpenMMWrapper(MMWrapper):
 
         print('reading qmmm forces in openmm')
         for f, coord in forces.items():
-            print('idx, force')
-            print(f,coord)
             coord *= MMWrapper.au_bohr_to_kjmol_nm             # convert this back to openmm units
-            print('idx, converted to kjmol_nm force')
-            print(f,coord)
             #print('fed in forces')
             #print(f, coord)
             #print('forces from before')
@@ -434,10 +433,8 @@ class OpenMMWrapper(MMWrapper):
         # check to see if there are unmatched residues in pdb, create residue templates if there are
         if (self.system_info_format == 'pdb' or self.use_pdb is True):
             unmatched = self.forcefield.getUnmatchedResidues(topology)
-            #if unmatched:
-            #    self.create_new_residue_template(topology)
-            print("number of residues for problem topology with unmatched residue")
-            print(len(unmatched))
+            if unmatched:
+                self.create_new_residue_template(topology)
             if len(unmatched) > 0:
                 print(unmatched[0])
                 for atom in unmatched[0].atoms():

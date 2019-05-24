@@ -93,16 +93,16 @@ class OniomXS(AQMMM):
 
             # needs work!
             # computing gradients
-            print('computing gradients of adaptive')
+            print('computing gradients of qmmm partitions')
             forces = {}
             for f, coord in qm_bz.qmmm_forces.items():
                 if f in qm.qmmm_forces:
                     forces[f] = lamda*coord + (1-lamda)*qm.qmmm_forces[f] 
-                    print('idx, coord, lamda, force')
-                    print(f,coord,lamda,forces[f])
+                    print('idx, qm+bz force, qm_force, lamda, adaptive force')
+                    print(f,coord, qm.qmmm_forces[f], lamda,forces[f])
                 else: 
                     forces[f] = lamda*coord
-                    print('idx, coord, lamda, force')
+                    print('idx, qm+bz force, lamda, adaptive force')
                     print(f,coord,lamda,forces[f])
 
             # computing gradient of switching function
@@ -112,16 +112,11 @@ class OniomXS(AQMMM):
             for i, buf in qm_bz.buffer_groups.items():
                 for idx, ratio in buf.weight_ratio.items():
                     forces[idx] += ratio * scaler * buf.d_s_i * buf.COM_coord
-                    print('idx, ratio, scaler, force[idx], buf.d_s_i')
-                    print(idx,ratio,scaler,forces[idx],buf.d_s_i)
+                    #print('idx, ratio, scaler, force[idx], buf.d_s_i')
+                    #print(idx,ratio,scaler,forces[idx],buf.d_s_i)
                 for idx, ratio in self.qm_center_weight_ratio.items():
                     forces[idx] -= ratio * scaler * buf.d_s_i * buf.COM_coord
-                    print('idx, ratio, scaler, force[idx], buf.d_s_i')
-                    print(idx,ratio,scaler,forces[idx],buf.d_s_i)
 
-            print('forces after adaptive qm/mm')
-            for idx,f in forces.items():
-                print(idx,f)
             self.systems[self.run_ID]['qmmm_forces'] = forces
 
 
