@@ -63,10 +63,15 @@ class AQMMM(ABC, QMMM):
             Defines the program used to obtain main_info
         """
 
+        t0 = time.time()
+        t_all = 0
         self.update_traj(main_info['positions'], main_info['topology'], wrapper_type)
         self.buffer_wrapper.update_traj(self.traj)
+        t1 = time.time()
         self.find_buffer_zone()
+        t2 = time.time()
         self.find_configurations()
+        print('timing for finding buffer zone: {}s'.format(t2-t1))
 
         counter = 0
         for i, system in self.systems[self.run_ID].items():
@@ -76,9 +81,9 @@ class AQMMM(ABC, QMMM):
             self.qm_atoms = deepcopy(system.qm_atoms)
 
             if self.embedding_method =='Mechanical':
-                t_all = self.mechanical(system, main_info)
+                t_all += self.mechanical(system, main_info)
             elif self.embedding_method =='Electrostatic':
-                t_all = self.electrostatic(system, main_info)
+                t_all += self.electrostatic(system, main_info)
             else:
                 print('only mechanical and electrostatic embedding schemes implemented at this time')
             counter += 1
@@ -90,7 +95,8 @@ class AQMMM(ABC, QMMM):
         self.systems[self.run_ID]['kinetic_energy'] = main_info['kinetic']
         #print('!qmmm_energy', self.systems[self.run_ID]['qmmm_energy'])
         #if self.run_ID % 10 == 0:
-        print('!', self.run_ID, self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])
+        print('! run {} total energy: {}'.format(self.run_ID+1, (self.systems[self.run_ID]['qmmm_energy'] + self.systems[self.run_ID]['kinetic_energy'])))
+        print('! run {} total potential energy: {}'.format(self.run_ID+1, self.systems[self.run_ID]['qmmm_energy']))
 
         # updates current step count
         self.run_ID += 1
@@ -99,6 +105,8 @@ class AQMMM(ABC, QMMM):
         if self.run_ID > 1:
             del self.systems[self.run_ID - 2]
 
+        t_end = time.time()
+        print('qmmm overhead took {}s'.format(t_end - t0-t_all))
         return t_all
 
         
@@ -151,23 +159,25 @@ class AQMMM(ABC, QMMM):
         # need to update??
         # this is only functional for explicitly solvated systems
         
-        # get all the unique groups 
+        # get all the unique groups - tested getting for all groups - same order of magnitude for mm, essentially same for qm
         
-        residues = {'qm_center' : []}
+        residues = {}
+
         for res in self.topology.residues:
+            atom_indices = []
+            for atom in res.atoms:
+                atom_indices.append(atom.index)
             if res.index in self.qm_center_residues:
-                for atom in res.atoms:
-                    residues['qm_center'].append(atom.index)
+                residues['qm_center'] = atom_indices
             else:
                 if res.name not in residues:
-                    residues[res.name] = []
-                    for atom in res.atoms:
-                        residues[res.name].append(atom.index)
+                    residues[res.name] = atom_indices
 
         self.qm_zero_energies = {}
         self.mm_zero_energies = {}
 
         for res in residues:
+
             traj = self.traj.atom_slice((residues[res]))
 
             t1 = time.time()
@@ -179,6 +189,8 @@ class AQMMM(ABC, QMMM):
             t2 = time.time()
             t0 += t2 - t1
         
+        print('qm zero energies: {}'.format(self.qm_zero_energies))
+        print('mm zero energies: {}'.format(self.mm_zero_energies))
         return t0
 
     def get_qm_center_residues(self):
@@ -193,21 +205,24 @@ class AQMMM(ABC, QMMM):
         """
         Incorporates the zero energy of groups to the total qmmm energy
         """
-        #print('step', self.run_ID)
+        print('incoporating zero energies')
         for i, sys in self.systems[self.run_ID].items():
-           # print(sys.qm_residues)
-           # print(sys.qm_atoms)
-           # print(sys.qmmm_energy)
-            sys.zero_energy += self.qm_zero_energies['qm_center']
+            print('qmmm_energy beginning {}'.format(sys.qmmm_energy))
+            total_qm_contribution = self.qm_zero_energies['qm_center']
+            total_mm_contribution = 0
             for res in self.topology.residues:
                 if (res.index in sys.qm_residues and res.index not in self.qm_center_residues):
-                    sys.zero_energy += self.qm_zero_energies[res.name]
+                    total_qm_contribution += self.qm_zero_energies[res.name] 
                 elif (res.index not in sys.qm_residues and res.index not in self.qm_center_residues):
-                    sys.zero_energy += self.mm_zero_energies[res.name]
-           # print(sys.zero_energy)
+                   # sys.zero_energy += self.mm_zero_energies[res.name]
+                    total_mm_contribution += self.mm_zero_energies[res.name] 
 
+            sys.zero_energy = total_qm_contribution + total_mm_contribution
             # maybe I should save a separate copy of qmmm energy somewhere
             sys.qmmm_energy -= sys.zero_energy
+            print('total qm to qmmm_energy end {}'.format(total_qm_contribution))
+            print('total mm to qmmm_energy end {}'.format(total_mm_contribution))
+            print('qmmm_energy end {}'.format(sys.qmmm_energy))
 
     def get_buffer_wrapper(self, partition_scheme):
 
