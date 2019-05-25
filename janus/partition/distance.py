@@ -78,6 +78,11 @@ class DistancePartition(Partition):
                         self.buffer_groups[idx] = res
                         self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
+        # fragment
+        print('checking for fragments')
+        self.find_fragments()
+        
+
     def find_buffer_atoms(self, qm_center):
         """
         Find the buffer groups whose COM falls in between Rmin and Rmax

@@ -95,12 +95,14 @@ class Psi4Wrapper(QMWrapper):
             self.gradient = np.asarray(G)
         except:
             print('in exception block')
-            self.set_up_psi4(be_quiet=False)
-            self.energy, self.wavefunction = psi4.energy(self.method,
-                                                        return_wfn=True)
+            #print('scf failed to converge most likely, trying something else')
+            
+            #self.set_up_psi4(be_quiet=False)
+            #self.energy, self.wavefunction = psi4.energy(self.method,
+            #                                            return_wfn=True)
 
-            G = psi4.gradient(self.method)
-            self.gradient = np.asarray(G)
+            #G = psi4.gradient(self.method)
+            #self.gradient = np.asarray(G)
             
         #deriv = psi4.core.Deriv(self.wavefunction)
         #deriv.compute()

@@ -99,24 +99,24 @@ class OniomXS(AQMMM):
             for f, coord in qm_bz.qmmm_forces.items():
                 if f in qm.qmmm_forces:
                     forces[f] = lamda*coord + (1-lamda)*qm.qmmm_forces[f] 
-                    print('idx, qm+bz force, qm_force, qm+bz - qm')
-                    print(f,coord, qm.qmmm_forces[f], coord - qm.qmmm_forces[f])
+                    #print('idx, qm+bz force, qm_force, qm+bz - qm')
+                    #print(f,coord, qm.qmmm_forces[f], coord - qm.qmmm_forces[f])
                 else: 
                     forces[f] = lamda*coord
-                    print('idx, qm+bz force')
-                    print(f,coord)
+                    #print('idx, qm+bz force')
+                    #print(f,coord)
 
             # computing gradient of switching function
-            #scaler = (qm_bz.qmmm_energy - qm.qmmm_energy) / len(qm_bz.buffer_groups)
-            #print('computing gradients of switching function')
+            scaler = (qm_bz.qmmm_energy - qm.qmmm_energy) / len(qm_bz.buffer_groups)
+            print('computing gradients of switching function')
 
-            #for i, buf in qm_bz.buffer_groups.items():
-            #    for idx, ratio in buf.weight_ratio.items():
-            #        forces[idx] += ratio * scaler * buf.d_s_i * buf.COM_coord
-            #        print('idx, ratio, force[idx], buf.d_s_i, buf.COM_coord')
-            #        print(idx,ratio,forces[idx],buf.d_s_i, buf.COM_coord)
-            #    for idx, ratio in self.qm_center_weight_ratio.items():
-            #        forces[idx] -= ratio * scaler * buf.d_s_i * buf.COM_coord
+            for i, buf in qm_bz.buffer_groups.items():
+                for idx, ratio in buf.weight_ratio.items():
+                    forces[idx] += ratio * scaler * buf.d_s_i * buf.COM_coord
+                    #print('idx, ratio, force[idx], buf.d_s_i, buf.COM_coord')
+                    #print(idx,ratio,forces[idx],buf.d_s_i, buf.COM_coord)
+                for idx, ratio in self.qm_center_weight_ratio.items():
+                    forces[idx] -= ratio * scaler * buf.d_s_i * buf.COM_coord
 
             self.systems[self.run_ID]['qmmm_forces'] = forces
 

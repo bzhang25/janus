@@ -159,6 +159,42 @@ class Partition(ABC):
 
         return temp_traj, qm_center_idx
 
+    def find_fragments(self):
+
+        largest_dis = 0
+        largest_atom1 = 0
+        largest_atom2 = 0
+        fragmented_residues = []
+        qm_res = deepcopy(self.qm_residues)
+        for res in qm_res:
+            res_atoms = []
+
+            for a in self.topology.residue(res).atoms:
+                res_atoms.append(a.index)
+
+            for i in res_atoms:
+                for j in res_atoms:
+                    if j > i:
+                        i_pos = np.array(self.traj.xyz[0][i]) 
+                        j_pos = np.array(self.traj.xyz[0][j]) 
+                        dis = np.linalg.norm(i_pos - j_pos)*Partition.nm_to_angstrom
+                        #print('distance between atom {} and atom {} is {}'.format(i,j,dis))
+                        if dis > largest_dis:
+                            largest_dis = dis
+                            largest_atom1 = i
+                            largest_atom2 = j
+                        if dis > 3.0:
+                            print('fragment detected in residue {}'.format(res))
+                            fragmented_residues.append(res)
+
+                            print('removing residue from qm region and adding to buffer region')
+                            self.qm_residue.remove(res)
+                            self.edit_atoms(atoms=self.qm_atoms, res_idx=res, remove=True)
+                            buf = self.get_residue_info(res)
+                            self.buffer_groups[res] = buf
+
+        print('the largest intra-residue distance is {} A between atom {} and atom {}'.format(largest_dis, largest_atom1,largest_atom2 ))
+                    
     def update_traj(self, traj):
         self.traj = traj
 
