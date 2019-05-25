@@ -112,11 +112,11 @@ class OniomXS(AQMMM):
 
             for i, buf in qm_bz.buffer_groups.items():
                 for idx, ratio in buf.weight_ratio.items():
-                    forces[idx] += ratio * scaler * buf.d_s_i * buf.COM_coord
+                    forces[idx] += (ratio * scaler * buf.d_s_i) / (buf.COM_coord*18.8973)
                     #print('idx, ratio, force[idx], buf.d_s_i, buf.COM_coord')
                     #print(idx,ratio,forces[idx],buf.d_s_i, buf.COM_coord)
                 for idx, ratio in self.qm_center_weight_ratio.items():
-                    forces[idx] -= ratio * scaler * buf.d_s_i * buf.COM_coord
+                    forces[idx] -= (ratio * scaler * buf.d_s_i) / (buf.COM_coord*18.8973)
 
             self.systems[self.run_ID]['qmmm_forces'] = forces
 
