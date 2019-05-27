@@ -77,16 +77,24 @@ class HotSpot(AQMMM):
         qm = self.systems[self.run_ID]['qm']
         self.systems[self.run_ID]['qmmm_energy'] = qm.qmmm_energy
 
-        # do I need to do deepcopy?
-        if not self.buffer_groups:
-            self.systems[self.run_ID]['qmmm_forces'] = qm.qmmm_forces
+        entire_grad = qm.entire_sys['gradients']
+        ps_mm_grad, qm_grad = qm.primary_subsys['ll']['gradients'], qm.primary_subsys['hl']['gradients']
+        forces = {}
 
-        else:
-
-            forces = deepcopy(qm.qmmm_forces)
+        buf_atoms = {}
+        if self.buffer_groups:
             for i, buf in self.buffer_groups.items():
                 for idx in buf.atoms:
-                    forces[idx] *= buf.s_i
+                    buf_atoms[idx] = buf.s_i
+                
+        for i, atom in enumerate(self.qm_atoms):
+            if atom in buf_atoms.keys():
+                #print('forces from buf atom {} with s_i {}'.format(atom,buf_atoms[atom]))
+                forces[atom] = -(-1*entire_grad[atom]) + buf_atoms[atom]*(-1*qm_grad[i]) + (1-buf_atoms[atom])*(-1*ps_mm_grad[i])
+
+            else:
+                #print('forces from qm atom')
+                forces[atom] = -(-1*entire_grad[atom]) + (-1*qm_grad[i])
 
             self.systems[self.run_ID]['qmmm_forces'] = forces
 
