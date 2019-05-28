@@ -259,10 +259,6 @@ class OpenMMWrapper(MMWrapper):
         
         """
 
-        current = OpenMMWrapper.get_state_info(self.main_simulation,
-                                                energy=False,
-                                                positions=False,
-                                                forces=True)
         #for f in range(len(current['forces'])):
         #    print(f, current['forces'][f])
 
@@ -274,8 +270,6 @@ class OpenMMWrapper(MMWrapper):
             #print('forces from before')
             #print(current['forces'][f])
             #coord -= current['forces'][f]
-            #print('new forces')
-            #print(coord)
             force_obj.setParticleParameters(f, f, coord)  # need to figure out if the first 2 parameters always the same or not
             
 
