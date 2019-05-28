@@ -92,8 +92,8 @@ class OniomXS(AQMMM):
             (1- lamda)*qm.qmmm_energy + lamda*qm_bz.qmmm_energy
 
             # needs work!
-            # computing gradients
-            print('computing gradients of qmmm partitions')
+            # computing forces 
+            print('computing forces due to qmmm partitions')
             forces = {}
             print('lamda is {}'.format(lamda))
             for f, coord in qm_bz.qmmm_forces.items():
@@ -106,17 +106,20 @@ class OniomXS(AQMMM):
                     #print('idx, qm+bz force')
                     #print(f,coord)
 
-            # computing gradient of switching function
+            # computing forces due to switching function
             scaler = (qm_bz.qmmm_energy - qm.qmmm_energy) / len(qm_bz.buffer_groups)
-            print('computing gradients of switching function')
+            print('computing forces due to switching function')
+            
+            bohr_to_ang = 0.529177
 
             for i, buf in qm_bz.buffer_groups.items():
                 for idx, ratio in buf.weight_ratio.items():
-                    forces[idx] += (ratio * scaler * buf.d_s_i) / (buf.COM_coord*18.8973)
+                    # negative because forces, then convert from hartree/ang to hartree/bohr)
+                    forces[idx] += -1*(ratio * scaler * buf.d_s_i * buf.r_i_vec*bohr_to_ang)
                     #print('idx, ratio, force[idx], buf.d_s_i, buf.COM_coord')
                     #print(idx,ratio,forces[idx],buf.d_s_i, buf.COM_coord)
                 for idx, ratio in self.qm_center_weight_ratio.items():
-                    forces[idx] -= (ratio * scaler * buf.d_s_i) / (buf.COM_coord*18.8973)
+                    forces[idx] -= -1*(ratio * scaler * buf.d_s_i * buf.r_i_vec*bohr_to_ang)
 
             self.systems[self.run_ID]['qmmm_forces'] = forces
 

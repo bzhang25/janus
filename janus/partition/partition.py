@@ -134,7 +134,8 @@ class Partition(ABC):
             buf.atoms.append(a.index)
 
         buf.COM_coord, buf.atom_weights, buf.weight_ratio = self.compute_COM(buf.atoms)
-        buf.r_i = np.linalg.norm(buf.COM_coord - np.array(qm_center_xyz))*Partition.nm_to_angstrom
+        buf.r_i_vec = (buf.COM_coord - np.array(qm_center_xyz))*Partition.nm_to_angstrom
+        buf.r_i = np.linalg.norm(buf.r_i_vec)
 
         return buf
 
@@ -188,7 +189,7 @@ class Partition(ABC):
                             fragmented_residues.append(res)
 
                             print('removing residue from qm region and adding to buffer region')
-                            self.qm_residue.remove(res)
+                            self.qm_residues.remove(res)
                             self.edit_atoms(atoms=self.qm_atoms, res_idx=res, remove=True)
                             buf = self.get_residue_info(res)
                             self.buffer_groups[res] = buf

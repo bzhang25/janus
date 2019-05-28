@@ -59,6 +59,7 @@ class DistancePartition(Partition):
                     self.buffer_groups[idx] = buf
                     self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
+        print('qm_atoms after buffer editing: {}'.format(self.qm_atoms))
         qm_atoms = deepcopy(self.qm_atoms)
         # tracking qm_residues and cleaning up qm
         for i in qm_atoms:
@@ -78,9 +79,10 @@ class DistancePartition(Partition):
                         self.buffer_groups[idx] = res
                         self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
+        print('qm_atoms after final editing: {}'.format(self.qm_atoms))
         # fragment
-        print('checking for fragments')
-        self.find_fragments()
+        #print('checking for fragments')
+        #self.find_fragments()
         
 
     def find_buffer_atoms(self, qm_center):
@@ -99,6 +101,8 @@ class DistancePartition(Partition):
         rmax_atoms = md.compute_neighbors(temp_traj, self.Rmax/10, qm_center_idx)
         self.buffer_atoms = np.setdiff1d(rmax_atoms, rmin_atoms)
         self.qm_atoms = rmin_atoms[0].tolist()
+        print('qm atoms found by mdtraj: {}'.format(self.qm_atoms))
+        print('buffer atoms found by mdtraj: {}'.format(self.buffer_atoms))
 
         if self.COM_as_qm_center is False:
             self.qm_atoms.append(qm_center[0])
