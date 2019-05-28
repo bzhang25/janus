@@ -59,7 +59,7 @@ class DistancePartition(Partition):
                     self.buffer_groups[idx] = buf
                     self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
-        print('qm_atoms after buffer editing: {}'.format(self.qm_atoms))
+        #print('qm_atoms after buffer editing: {}'.format(self.qm_atoms))
         qm_atoms = deepcopy(self.qm_atoms)
         # tracking qm_residues and cleaning up qm
         for i in qm_atoms:
@@ -79,7 +79,7 @@ class DistancePartition(Partition):
                         self.buffer_groups[idx] = res
                         self.edit_atoms(atoms=self.qm_atoms, res_idx=idx, remove=True)
 
-        print('qm_atoms after final editing: {}'.format(self.qm_atoms))
+        #print('qm_atoms after final editing: {}'.format(self.qm_atoms))
         # fragment
         #print('checking for fragments')
         #self.find_fragments()
