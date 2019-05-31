@@ -84,6 +84,7 @@ class OpenMMWrapper(MMWrapper):
 
         self.ff = mm_forcefield
         self.ff_water = mm_water_forcefield
+        print('using water forcefield: {}'.format(self.ff_water))
         self.NVE_integrator = NVE_integrator
         self.NVT_integrator = NVT_integrator
         self.temp = temp*OM_unit.kelvin
@@ -755,7 +756,7 @@ class OpenMMWrapper(MMWrapper):
         """
 
         if self.return_system is True: 
-            OM_app.PDBFile.writeFile(info['topology'], info['positions'], open(self.return_system_filename, 'w'))
+            OM_app.PDBFile.writeFile(info['topology'], info['positions']*10, open(self.return_system_filename, 'w'),keepIds=True)
  
 
     def create_modeller(self, atoms, keep_atoms=False):
